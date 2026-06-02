@@ -57,15 +57,15 @@ def filter_tags(papers: List[Dict[str, str]], target_fileds: List[str]=["cs", "s
                 break
     return results
 
-def get_daily_papers_by_keyword_with_retries(keyword: str, column_names: List[str], max_result: int, link: str = "OR", retries: int = 6) -> List[Dict[str, str]]:
+def get_daily_papers_by_keyword_with_retries(keyword: str, column_names: List[str], max_result: int, link: str = "OR", retries: int = 3, retry_delay: int = 60) -> List[Dict[str, str]]:
     for _ in range(retries):
         papers = get_daily_papers_by_keyword(keyword, column_names, max_result, link)
         if len(papers) > 0: return papers
         else:
             print("Unexpected empty list, retrying...")
-            time.sleep(60 * 30) # wait for 30 minutes
+            time.sleep(retry_delay)
     # failed
-    return None
+    return []
 
 def get_daily_papers_by_keyword(keyword: str, column_names: List[str], max_result: int, link: str = "OR") -> List[Dict[str, str]]:
     # get papers
@@ -78,6 +78,9 @@ def get_daily_papers_by_keyword(keyword: str, column_names: List[str], max_resul
     return papers
 
 def generate_table(papers: List[Dict[str, str]], ignore_keys: List[str] = []) -> str:
+    if len(papers) == 0:
+        return "_No papers found._"
+
     formatted_papers = []
     keys = papers[0].keys()
     for paper in papers:
